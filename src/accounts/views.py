@@ -1,6 +1,3 @@
-from distutils.command.check import check
-
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -14,6 +11,8 @@ from .serializers import UserProfileSerializer
 
 
 class RegisterView(APIView):
+    parser_classes = [JSONParser]
+
     def post(self, request):
         serializer = UserProfileSerializer(data=request.data)
 
@@ -26,8 +25,8 @@ class RegisterView(APIView):
             if not username:
                 # Generate a random username from the email
                 username = generate_unique_username(email)
-            # Check if the username already exists in the MongoDB collection
 
+            # Check if the username already exists in the MongoDB collection
             if check_username(username):
                 return Response(
                     {"error": "A user with that username already exists"},
@@ -57,3 +56,32 @@ class RegisterView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginView(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        # Validate the provided credentials against your user data in MongoDB
+        user = db["user_profiles"].find_one(
+            {"username": username, "password": password}
+        )
+
+        if user:
+            # custom_token = self.generate_custom_token(user)
+
+            # Return the custom token in the response
+            response_data = {
+                "username": user["username"],
+                "email": user["email"],
+                "full_name": f"{user['first_name']}-{user['last_name']}",
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        return Response(
+            {"error": "Username or password is invalid"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
