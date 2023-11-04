@@ -6,5 +6,7 @@ app_name = "accounts"
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
-    # Add other views as needed
+    # path("login/", LoginView.as_view(), name='login'),
+    # path("profile/view", ),
+    # path("profile/edit", ),
 ]

@@ -75,3 +75,4 @@ htmlcov/
 nosetests.xml
 setup.cfg
 .pre-commit-config.yaml
+.editorconfig
