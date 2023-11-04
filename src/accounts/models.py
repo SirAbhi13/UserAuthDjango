@@ -1,3 +1,3 @@
-from django.db import models
+from utils import db
 
-# Create your models here.
+user_profiles = db["user_profiles"]
