@@ -34,13 +34,15 @@ source .venv/bin/activate
  - `accounts/register/`,
  - `accounts/login/`,
  - `accounts/profile/view`,
- - `accoutns/profile/edit`,
+ - `accounts/profile/edit`,
 
  8) Hit the APIs with using Postman or curl requests and you should get the appropriate responses.
 
  9) The JWT token must be sent through `Custom-Token` header in the request.
 
  10) After login, the custom token is sent under `Authorization` key in the response.
+
+ 11) When using `accounts/profile/edit`, provide `username` to reference the record in db, and to change username, provide the new username using `new_username` key in the request.
 
 
 # Challenges Faced

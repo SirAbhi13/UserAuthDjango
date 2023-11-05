@@ -8,6 +8,8 @@ from utils import db
 
 
 def generate_unique_username(email):
+    """
+    returns a username using email and 4 random characters"""
     # Generate a random username from a combination of email and random characters
     random_chars = "".join(
         random.choices(string.ascii_lowercase, k=4)
@@ -25,6 +27,8 @@ def generate_unique_username(email):
 
 
 def check_username(username):
+    """
+    checks if username exists in db and returns boolean"""
     if db["user_profiles"].find_one({"username": username}):
         return True
     return False

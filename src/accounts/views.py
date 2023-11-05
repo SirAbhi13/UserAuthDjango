@@ -12,6 +12,10 @@ from .serializers import UserProfileSerializer
 
 
 class RegisterView(APIView):
+    """
+    A view to register a user to the database. Returns username and email
+    """
+
     parser_classes = [JSONParser, FormParser]
 
     def post(self, request):
@@ -60,6 +64,9 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    """
+    A view to login which returns an auth token"""
+
     parser_classes = [JSONParser, FormParser]
 
     def post(self, request):
@@ -71,7 +78,12 @@ class LoginView(APIView):
         )
 
         if user:
-            custom_token = generate_custom_token(user)
+            try:
+                custom_token = generate_custom_token(user)
+            except Exception as e:
+                return Response(
+                    {"Error": f"Firebase Error {e}"}, status=status.HTTP_403_FORBIDDEN
+                )
 
             # Return the custom token in the response
             response_data = {
@@ -84,7 +96,7 @@ class LoginView(APIView):
 
         return Response(
             {"error": "Username or password is invalid"},
-            status=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
     def get(self, request):
@@ -96,7 +108,12 @@ class LoginView(APIView):
         )
 
         if user:
-            custom_token = generate_custom_token(user)
+            try:
+                custom_token = generate_custom_token(user)
+            except Exception as e:
+                return Response(
+                    {"Error": f"Firebase Error {e}"}, status=status.HTTP_403_FORBIDDEN
+                )
 
             # Return the custom token in the response
             response_data = {
@@ -109,26 +126,31 @@ class LoginView(APIView):
 
         return Response(
             {"error": "Username or password is invalid"},
-            status=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
 
 class ProfileView(APIView):
+    """
+    A view which returns the details about a specific profile"""
+
     parser_classes = [JSONParser, FormParser]
 
     def get(self, request):
-        # User is already authenticated and authorized by the middleware
         if request.query_params.get("username") is None:
             return Response(
                 {"Errror": "username can't be empty"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         user_profile = self.get_user_profile(request.query_params.get("username"))
+        if user_profile is None:
+            return Response(
+                {"Error": "username not found in database"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        # Create a serializer instance to customize the response data
         # serializer = UserProfileSerializer(instance=user_profile)
 
-        # Include the 'username' and 'email' fields in the response
         response_data = {
             "username": request.query_params.get("username"),
             "email": user_profile.get("email", ""),
@@ -144,6 +166,10 @@ class ProfileView(APIView):
 
 
 class ProfileEditView(APIView):
+    """
+    An API that allows to edit a profile in database and returns new username, email and full name
+    """
+
     parser_classes = [JSONParser, FormParser]
 
     def post(self, request):
@@ -163,7 +189,7 @@ class ProfileEditView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Update the user's profile with the provided data
+        # Update the user's profile with the new data
         user_profile["first_name"] = request.data.get(
             "first_name", user_profile["first_name"]
         )
@@ -185,7 +211,6 @@ class ProfileEditView(APIView):
             "full_name": f"{user_profile['first_name']}-{user_profile['last_name']}",
         }
 
-        # Redirect to the profile view after a successful edit
         return Response(response_data, status=status.HTTP_200_OK)
 
     def get_user_profile(self, username):
