@@ -26,7 +26,7 @@ source .venv/bin/activate
 
 4) open .env file and add the MongoDB connection string and also the name of the database.
 
-5) Please also add a `serviceAccountKey.json` in `wyseinterview/src/`. This json file is generated in the firebase console, under project settings, inside service accounts. Use the Generate Private key button to download the json file.
+5) Please also add a `serviceAccountKey.json` in `UserAuthDjango/src/`. This json file is generated in the firebase console, under project settings, inside service accounts. Use the Generate Private key button to download the json file.
 
 6) Now to run the backend server, simply type `make runserver` to initiate the server at http://127.0.0.1:8000/
 
