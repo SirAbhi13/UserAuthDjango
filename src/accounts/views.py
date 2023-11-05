@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.support import check_username, generate_unique_username
+from firebase_auth.authenticator import generate_custom_token
 from utils import db
 
 from .models import user_profiles
@@ -65,20 +66,19 @@ class LoginView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        # Validate the provided credentials against your user data in MongoDB
         user = db["user_profiles"].find_one(
             {"username": username, "password": password}
         )
 
         if user:
-            # custom_token = self.generate_custom_token(user)
+            custom_token = generate_custom_token(user)
 
             # Return the custom token in the response
             response_data = {
                 "username": user["username"],
                 "email": user["email"],
                 "full_name": f"{user['first_name']}-{user['last_name']}",
-                "Authorization:": "placeholder",
+                "Authorization:": custom_token,
             }
             return Response(response_data, status=status.HTTP_200_OK)
 
@@ -93,6 +93,11 @@ class ProfileView(APIView):
 
     def get(self, request):
         # User is already authenticated and authorized by the middleware
+        if request.query_params.get("username") is None:
+            return Response(
+                {"Errror": "username can't be empty"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         user_profile = self.get_user_profile(request.query_params.get("username"))
 
         # Create a serializer instance to customize the response data
@@ -101,7 +106,7 @@ class ProfileView(APIView):
         # Include the 'username' and 'email' fields in the response
         response_data = {
             "username": request.query_params.get("username"),
-            "email": user_profile["email"],
+            "email": user_profile.get("email", ""),
             "full_name": f"{user_profile['first_name']}-{user_profile['last_name']}",
         }
 
