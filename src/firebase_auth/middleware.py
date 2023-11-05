@@ -1,3 +1,4 @@
+from django.http import HttpResponseNotFound
 from firebase_admin import auth
 
 from .authenticator import verify_custom_token
@@ -20,8 +21,8 @@ class CustomTokenAuthMiddleware:
                         return self.get_response(request)
 
                 except Exception:
-                    raise InvalidAuthToken("Invalid auth token")
+                    return HttpResponseNotFound("Error! Invalid auth token provided")
 
             else:
-                raise NoAuthToken("No auth token provided")
+                return HttpResponseNotFound("Error! No auth token found!")
         return self.get_response(request)
