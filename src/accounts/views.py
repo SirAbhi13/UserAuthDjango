@@ -87,6 +87,31 @@ class LoginView(APIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    def get(self, request):
+        username = request.query_params.get("username")
+        password = request.query_params.get("password")
+
+        user = db["user_profiles"].find_one(
+            {"username": username, "password": password}
+        )
+
+        if user:
+            custom_token = generate_custom_token(user)
+
+            # Return the custom token in the response
+            response_data = {
+                "username": user["username"],
+                "email": user["email"],
+                "full_name": f"{user['first_name']}-{user['last_name']}",
+                "Authorization:": custom_token,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        return Response(
+            {"error": "Username or password is invalid"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
 
 class ProfileView(APIView):
     parser_classes = [JSONParser, FormParser]
