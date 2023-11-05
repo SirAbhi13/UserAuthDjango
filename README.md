@@ -13,6 +13,8 @@
 - Used poetry for seamless dependency management and strict enforcement of Python 3.9 version and Django 3.2.
 
 - Used Makefile for efficient local setup and deployment and to reduce commands.
+
+- I have also added `corsheaders` to the project in case it's used by some frontend for testing. All origins are allowed.
 ## Local Setup
 
 1) Clone the repository and cd into it.
