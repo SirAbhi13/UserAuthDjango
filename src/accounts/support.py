@@ -27,3 +27,4 @@ def generate_unique_username(email):
 def check_username(username):
     if db["user_profiles"].find_one({"username": username}):
         return True
+    return False

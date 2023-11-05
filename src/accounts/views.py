@@ -78,6 +78,7 @@ class LoginView(APIView):
                 "username": user["username"],
                 "email": user["email"],
                 "full_name": f"{user['first_name']}-{user['last_name']}",
+                "Authorization:": "placeholder",
             }
             return Response(response_data, status=status.HTTP_200_OK)
 
@@ -104,6 +105,57 @@ class ProfileView(APIView):
             "full_name": f"{user_profile['first_name']}-{user_profile['last_name']}",
         }
 
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def get_user_profile(self, username):
+        user_profile = db["user_profiles"].find_one({"username": username})
+
+        return user_profile
+
+
+class ProfileEditView(APIView):
+    parser_classes = [JSONParser, FormParser]
+
+    def post(self, request):
+        existing_username = request.data.get("username")
+        user_profile = self.get_user_profile(existing_username)
+
+        if not user_profile:
+            return Response(
+                {"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check if the user is trying to edit the username
+        new_username = request.data.get("new_username")
+        if new_username and check_username(new_username):
+            return Response(
+                {"error": f"User already exists with the username {new_username}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update the user's profile with the provided data
+        user_profile["first_name"] = request.data.get(
+            "first_name", user_profile["first_name"]
+        )
+        user_profile["last_name"] = request.data.get(
+            "last_name", user_profile["last_name"]
+        )
+        user_profile["username"] = (
+            new_username if new_username else user_profile["username"]
+        )
+
+        # Save the updated profile data back to the database
+        db["user_profiles"].update_one(
+            {"username": existing_username}, {"$set": user_profile}
+        )
+
+        response_data = {
+            "username": user_profile["username"],
+            "email": user_profile["email"],
+            "full_name": f"{user_profile['first_name']}-{user_profile['last_name']}",
+        }
+
+        # Redirect to the profile view after a successful edit
         return Response(response_data, status=status.HTTP_200_OK)
 
     def get_user_profile(self, username):
