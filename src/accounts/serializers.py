@@ -27,3 +27,12 @@ class UserProfileSerializer(serializers.Serializer):
     last_name = serializers.CharField(
         max_length=100, required=False, allow_blank=True, validators=[check_length]
     )
+
+
+class ProfileViewSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    email = serializers.EmailField(max_length=100, required=True)
+    full_name = serializers.SerializerMethodField()
+
+    def get_full_name(self, obj):
+        return f"{obj.get('first_name', '')}-{obj.get('last_name', '')}"

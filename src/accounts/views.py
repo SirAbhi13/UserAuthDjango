@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,7 +11,7 @@ from .serializers import UserProfileSerializer
 
 
 class RegisterView(APIView):
-    parser_classes = [JSONParser]
+    parser_classes = [JSONParser, FormParser]
 
     def post(self, request):
         serializer = UserProfileSerializer(data=request.data)
@@ -59,7 +59,7 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
-    parser_classes = [JSONParser]
+    parser_classes = [JSONParser, FormParser]
 
     def post(self, request):
         username = request.data.get("username")
@@ -85,3 +85,28 @@ class LoginView(APIView):
             {"error": "Username or password is invalid"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class ProfileView(APIView):
+    parser_classes = [JSONParser, FormParser]
+
+    def get(self, request):
+        # User is already authenticated and authorized by the middleware
+        user_profile = self.get_user_profile(request.query_params.get("username"))
+
+        # Create a serializer instance to customize the response data
+        # serializer = UserProfileSerializer(instance=user_profile)
+
+        # Include the 'username' and 'email' fields in the response
+        response_data = {
+            "username": request.query_params.get("username"),
+            "email": user_profile["email"],
+            "full_name": f"{user_profile['first_name']}-{user_profile['last_name']}",
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def get_user_profile(self, username):
+        user_profile = db["user_profiles"].find_one({"username": username})
+
+        return user_profile
